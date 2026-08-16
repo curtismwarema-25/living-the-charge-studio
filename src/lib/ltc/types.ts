@@ -7,12 +7,12 @@ export interface BriefSection {
 }
 
 export interface BriefMeta {
-  date?: string;
-  time?: string;
-  location?: string;
-  website?: string;
-  contact?: string;
-  registration?: string;
+  date?: string | undefined;
+  time?: string | undefined;
+  location?: string | undefined;
+  website?: string | undefined;
+  contact?: string | undefined;
+  registration?: string | undefined;
 }
 
 export interface Brief {
@@ -37,7 +37,7 @@ export interface DocImage {
   dataUrl: string;
   fit: ImageFit;
   shape: ImageShape;
-  caption?: string;
+  caption?: string | undefined;
 }
 
 interface BlockBase {
@@ -49,22 +49,22 @@ export interface TextBlock extends BlockBase {
   kind: "text";
   heading: string;
   body: string;
-  quote?: string;
-  quoteAuthor?: string;
+  quote?: string | undefined;
+  quoteAuthor?: string | undefined;
 }
 
 export interface ImageTextBlock extends BlockBase {
   kind: "imageText";
   heading: string;
   body: string;
-  image?: DocImage;
+  image?: DocImage | undefined;
   imagePosition: "left" | "right";
 }
 
 export interface FullImageBlock extends BlockBase {
   kind: "fullImage";
-  image?: DocImage;
-  text?: string;
+  image?: DocImage | undefined;
+  text?: string | undefined;
 }
 
 export interface QuoteBlock extends BlockBase {
@@ -96,7 +96,7 @@ export interface Newsletter {
   date: string;
   title: string;
   introduction: string;
-  hero?: DocImage;
+  hero?: DocImage | undefined;
   blocks: StoryBlock[];
   closingTitle: string;
   closingMessage: string;

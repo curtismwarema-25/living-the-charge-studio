@@ -75,7 +75,6 @@ export function sampleNewsletter(): Newsletter {
     title: "Building Opportunities, One Student at a Time",
     introduction:
       "This month brought new partnerships, a fuller mentorship cohort and a reminder of why the work matters: a student who thought university was out of reach is now preparing for her first semester. Here is what the community built together in August.",
-    hero: undefined,
     blocks: [
       {
         id: uid(),
