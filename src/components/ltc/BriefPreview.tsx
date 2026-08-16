@@ -1,13 +1,18 @@
-import type { Brief } from "@/lib/ltc/types";
+import type { Brief, TextColor } from "@/lib/ltc/types";
 import { A4Page, PageFooter } from "./Workspace";
 
 export function BriefPreview({
   brief,
   pageRef,
+  onSelectSection,
 }: {
   brief: Brief;
   pageRef?: (el: HTMLDivElement | null) => void;
+  onSelectSection?: (index: number) => void;
 }) {
+  const textColor = (color?: TextColor) =>
+    color === "accent" ? "var(--ltc-accent)" : color === "muted" ? "var(--ltc-muted)" : "var(--ltc-text)";
+
   const linkFor = (label: string, value: string) => {
     if (label === "Website") return value.startsWith("http") ? value : `https://${value}`;
     if (label === "Contact") return `mailto:${value}`;
@@ -47,13 +52,18 @@ export function BriefPreview({
 
       <div className="mt-10 grid grid-cols-3 gap-x-8">
         {brief.sections.map((s, i) => (
-          <article key={s.id} className="min-w-0 break-words">
+          <article
+            key={s.id}
+            className={`min-w-0 break-words rounded-sm ${s.spacing === "compact" ? "" : "pb-1"}`}
+            style={{ color: textColor(s.color) }}
+            onClick={() => onSelectSection?.(i)}
+          >
             <div className="ltc-display text-[26px] text-ltc-accent">
               {String(i + 1).padStart(2, "0")}
             </div>
             <hr className="ltc-rule my-3" />
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em]">{s.title}</h3>
-            <p className="ltc-body-text mt-3 whitespace-pre-line text-[11.5px]">{s.content}</p>
+            <p className={`ltc-body-text whitespace-pre-line text-[11.5px] ${s.spacing === "compact" ? "mt-2" : "mt-4"}`}>{s.content}</p>
           </article>
         ))}
       </div>

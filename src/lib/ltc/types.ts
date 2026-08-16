@@ -4,6 +4,8 @@ export interface BriefSection {
   id: string;
   title: string;
   content: string;
+  color?: TextColor | undefined;
+  spacing?: "compact" | "comfortable" | undefined;
 }
 
 export interface BriefMeta {

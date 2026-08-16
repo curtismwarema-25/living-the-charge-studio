@@ -7,9 +7,10 @@ import { PagesViewport } from "./Workspace";
 import { ImageUploader } from "./ImageUploader";
 import { StoryBlockEditor } from "./StoryBlockEditor";
 import { sampleBrief, sampleNewsletter, templateBlocks } from "@/lib/ltc/samples";
+import { uid } from "@/lib/ltc/types";
 import { exportPagesToPdf } from "@/lib/ltc/pdf";
 import { clearBrief, clearNewsletter, loadBrief, loadNewsletter, saveBrief, saveNewsletter } from "@/lib/ltc/storage";
-import type { Brief, ImageAlign, ImageFit, Newsletter, StoryBlock, StoryBlockKind, TextColor } from "@/lib/ltc/types";
+import type { Brief, BriefSection, ImageAlign, ImageFit, Newsletter, StoryBlock, StoryBlockKind, TextColor } from "@/lib/ltc/types";
 
 type Kind = "brief" | "newsletter";
 
@@ -20,6 +21,7 @@ export function Studio({ kind }: { kind: Kind }) {
   const [saved, setSaved] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
+  const [selectedBriefSectionIndex, setSelectedBriefSectionIndex] = useState<number | null>(null);
   const pageRefs = useRef<HTMLElement[]>([]);
   const hasMounted = useRef(false);
   const navigate = useNavigate();
@@ -31,6 +33,8 @@ export function Studio({ kind }: { kind: Kind }) {
     const result: string[] = [];
     if (!doc.title.trim()) result.push("Add a title before exporting.");
     if (isBrief && values.join(" ").length > 2600) result.push("This brief may be too long for a balanced one-page layout.");
+    if (isBrief && brief.sections.length > 3) result.push("More than three sections may make the one-page columns too crowded.");
+    if (isBrief && brief.sections.some((section) => section.content.length > 900)) result.push("One section is unusually long; shorten it or use compact spacing to protect the one-page layout.");
     if (!isBrief && !newsletter.closingMessage.trim()) result.push("Add a closing message to complete the newsletter.");
     return result;
   }, [brief, doc.title, isBrief, newsletter]);
@@ -82,13 +86,13 @@ export function Studio({ kind }: { kind: Kind }) {
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto"><StudioButton variant="ghost" onClick={clear}>Clear draft</StudioButton><StudioButton onClick={save}>{saved ? "Saved" : "Save draft"}</StudioButton><span className="col-span-2 sm:col-span-1"><StudioButton variant="solid" onClick={() => void download()} disabled={exporting || warnings.length > 0}>{exporting ? "Preparing PDF…" : "Download PDF"}</StudioButton></span></div>
       </div>
       {warnings.length > 0 && <div className="mb-6 border-l-2 border-ltc-accent bg-ltc-accent-soft px-4 py-3 text-sm text-ltc-text">{warnings.map((w) => <p key={w}>{w}</p>)}</div>}
-      {!isBrief ? <FormattingBar block={selectedBlockIndex === null ? undefined : newsletter.blocks[selectedBlockIndex]} onChange={updateSelectedBlock} onMove={(direction) => { if (selectedBlockIndex !== null) { moveNewsletterBlock(newsletter, selectedBlockIndex, direction, updateNewsletter); setSelectedBlockIndex(selectedBlockIndex + direction); } }} /> : null}
+      {isBrief ? <BriefFormattingBar section={selectedBriefSectionIndex === null ? undefined : brief.sections[selectedBriefSectionIndex]} onChange={(update) => { if (selectedBriefSectionIndex !== null) updateBrief({ ...brief, sections: brief.sections.map((section, index) => index === selectedBriefSectionIndex ? update(section) : section) }); }} onMove={(direction) => { if (selectedBriefSectionIndex !== null) { moveBriefSection(brief, selectedBriefSectionIndex, direction, updateBrief); setSelectedBriefSectionIndex(selectedBriefSectionIndex + direction); } }} /> : <FormattingBar block={selectedBlockIndex === null ? undefined : newsletter.blocks[selectedBlockIndex]} onChange={updateSelectedBlock} onMove={(direction) => { if (selectedBlockIndex !== null) { moveNewsletterBlock(newsletter, selectedBlockIndex, direction, updateNewsletter); setSelectedBlockIndex(selectedBlockIndex + direction); } }} />}
       <div className="grid items-start gap-6 sm:gap-10 xl:grid-cols-[minmax(360px,520px)_1fr]">
         <div className="space-y-8 bg-ltc-background p-4 sm:p-6 lg:p-8">
-          {isBrief ? <BriefForm value={brief} onChange={updateBrief} /> : <NewsletterForm value={newsletter} onChange={updateNewsletter} selectedBlockIndex={selectedBlockIndex} onSelectBlock={setSelectedBlockIndex} />}
+          {isBrief ? <BriefForm value={brief} onChange={updateBrief} selectedSectionIndex={selectedBriefSectionIndex} onSelectSection={setSelectedBriefSectionIndex} /> : <NewsletterForm value={newsletter} onChange={updateNewsletter} selectedBlockIndex={selectedBlockIndex} onSelectBlock={setSelectedBlockIndex} />}
           <p className="ltc-caption">Drafts are stored locally in this browser. Nothing is uploaded.</p>
         </div>
-        <div className="min-w-0"><div className="mb-3 flex items-center justify-between"><span className="ltc-meta">Live preview</span><span className="ltc-caption">A4 portrait</span></div><PagesViewport>{isBrief ? <BriefPreview brief={brief} pageRef={(el) => { if (el) pageRefs.current[0] = el; }} /> : <NewsletterPreview newsletter={newsletter} pageRefs={(el, i) => { if (el) pageRefs.current[i] = el; }} />}</PagesViewport></div>
+        <div className="min-w-0"><div className="mb-3 flex items-center justify-between"><span className="ltc-meta">Live preview</span><span className="ltc-caption">A4 portrait</span></div><PagesViewport>{isBrief ? <BriefPreview brief={brief} onSelectSection={setSelectedBriefSectionIndex} pageRef={(el) => { if (el) pageRefs.current[0] = el; }} /> : <NewsletterPreview newsletter={newsletter} pageRefs={(el, i) => { if (el) pageRefs.current[i] = el; }} />}</PagesViewport></div>
       </div>
     </div>
   </div>;
@@ -100,6 +104,31 @@ function moveNewsletterBlock(n: Newsletter, index: number, direction: -1 | 1, on
   const blocks = [...n.blocks];
   [blocks[index], blocks[target]] = [blocks[target]!, blocks[index]!];
   onChange({ ...n, blocks });
+}
+
+function moveBriefSection(b: Brief, index: number, direction: -1 | 1, onChange: (next: Brief) => void) {
+  const target = index + direction;
+  if (target < 0 || target >= b.sections.length) return;
+  const sections = [...b.sections];
+  [sections[index], sections[target]] = [sections[target]!, sections[index]!];
+  onChange({ ...b, sections });
+}
+
+function BriefFormattingBar({ section, onChange, onMove }: { section?: BriefSection | undefined; onChange: (update: (section: BriefSection) => BriefSection) => void; onMove: (direction: -1 | 1) => void }) {
+  return (
+    <div className="mb-6 flex flex-wrap items-center gap-2 border border-ltc-line bg-ltc-background px-3 py-2">
+      <span className="ltc-meta mr-2">Format brief section</span>
+      <select aria-label="Brief section text color" value={section?.color ?? "default"} disabled={!section} onChange={(event) => onChange((current) => ({ ...current, color: event.target.value as TextColor }))} className="field-input w-auto py-1.5 text-[12px]">
+        <option value="default">Text color</option><option value="accent">Cobalt accent</option><option value="muted">Muted</option>
+      </select>
+      <select aria-label="Brief section spacing" value={section?.spacing ?? "comfortable"} disabled={!section} onChange={(event) => onChange((current) => ({ ...current, spacing: event.target.value as BriefSection["spacing"] }))} className="field-input w-auto py-1.5 text-[12px]">
+        <option value="comfortable">Comfortable spacing</option><option value="compact">Compact spacing</option>
+      </select>
+      <button type="button" disabled={!section} onClick={() => onMove(-1)} className="border border-ltc-line px-3 py-1.5 text-[12px] disabled:opacity-40">Move up</button>
+      <button type="button" disabled={!section} onClick={() => onMove(1)} className="border border-ltc-line px-3 py-1.5 text-[12px] disabled:opacity-40">Move down</button>
+      {!section ? <span className="ltc-caption ml-1">Select a brief section to edit it.</span> : null}
+    </div>
+  );
 }
 
 function FormattingBar({ block, onChange, onMove }: { block?: StoryBlock | undefined; onChange: (update: (block: StoryBlock) => StoryBlock) => void; onMove: (direction: -1 | 1) => void }) {
@@ -124,12 +153,23 @@ function FormattingBar({ block, onChange, onMove }: { block?: StoryBlock | undef
   );
 }
 
-function BriefForm({ value: b, onChange }: { value: Brief; onChange: (b: Brief) => void }) {
+function BriefForm({ value: b, onChange, selectedSectionIndex, onSelectSection }: { value: Brief; onChange: (b: Brief) => void; selectedSectionIndex: number | null; onSelectSection: (index: number) => void }) {
   const set = <K extends keyof Brief>(key: K, val: Brief[K]) => onChange({ ...b, [key]: val });
+  const updateSection = (id: string, update: (section: BriefSection) => BriefSection) => set("sections", b.sections.map((section) => section.id === id ? update(section) : section));
+  const addSection = () => {
+    const next: BriefSection = { id: uid(), title: "NEW SECTION", content: "", spacing: "comfortable" };
+    set("sections", [...b.sections, next]);
+    onSelectSection(b.sections.length);
+  };
+  const removeSection = (index: number) => {
+    if (b.sections.length <= 1) return;
+    set("sections", b.sections.filter((_, sectionIndex) => sectionIndex !== index));
+    onSelectSection(Math.max(0, Math.min(index, b.sections.length - 2)));
+  };
   return <>
     <EditorSection step="01" title="Document information"><Field label="Eyebrow / category"><TextInput value={b.category} onChange={(v) => set("category", v)} /></Field><Field label="Title"><TextInput value={b.title} onChange={(v) => set("title", v)} /></Field><Field label="Subtitle"><TextInput value={b.subtitle} onChange={(v) => set("subtitle", v)} /></Field></EditorSection>
     <EditorSection step="02" title="Introduction"><Field label="Introductory paragraph"><TextArea value={b.introduction} onChange={(v) => set("introduction", v)} rows={5} /></Field></EditorSection>
-    <EditorSection step="03" title="Sections">{b.sections.map((s, i) => <div key={s.id} className="space-y-4"><Field label={`Section ${String(i + 1).padStart(2, "0")} title`}><TextInput value={s.title} onChange={(v) => set("sections", b.sections.map((x) => x.id === s.id ? { ...x, title: v } : x))} /></Field><Field label="Section content"><TextArea value={s.content} onChange={(v) => set("sections", b.sections.map((x) => x.id === s.id ? { ...x, content: v } : x))} rows={5} /></Field></div>)}</EditorSection>
+    <EditorSection step="03" title="Sections"><div className="space-y-6">{b.sections.map((s, i) => <div key={s.id} className={`space-y-4 border p-4 ${selectedSectionIndex === i ? "border-ltc-accent" : "border-ltc-line"}`} onClick={() => onSelectSection(i)}><div className="flex items-center justify-between gap-3"><span className="ltc-meta">Section {String(i + 1).padStart(2, "0")}</span><div className="flex gap-1"><button type="button" className="border border-ltc-line px-2 py-1 text-[11px] disabled:opacity-40" disabled={i === 0} onClick={() => moveBriefSection(b, i, -1, onChange)}>↑</button><button type="button" className="border border-ltc-line px-2 py-1 text-[11px] disabled:opacity-40" disabled={i === b.sections.length - 1} onClick={() => moveBriefSection(b, i, 1, onChange)}>↓</button><button type="button" className="border border-ltc-line px-2 py-1 text-[11px] disabled:opacity-40" disabled={b.sections.length <= 1} onClick={() => removeSection(i)}>Remove</button></div></div><Field label="Section title"><TextInput value={s.title} onChange={(v) => updateSection(s.id, (section) => ({ ...section, title: v }))} /></Field><Field label="Section content"><TextArea value={s.content} onChange={(v) => updateSection(s.id, (section) => ({ ...section, content: v }))} rows={5} /></Field></div>)}<StudioButton onClick={addSection}>Add section</StudioButton></div></EditorSection>
     <EditorSection step="04" title="Next step"><Field label="Label"><TextInput value={b.nextStepTitle} onChange={(v) => set("nextStepTitle", v)} /></Field><Field label="Supporting text"><TextArea value={b.nextStep} onChange={(v) => set("nextStep", v)} rows={4} /></Field></EditorSection>
     <EditorSection step="05" title="Event / reference information"><div className="grid gap-4 sm:grid-cols-2">{(["date", "time", "location", "website", "contact", "registration"] as const).map((key) => <Field key={key} label={key}><TextInput value={b.meta[key] ?? ""} onChange={(v) => onChange({ ...b, meta: { ...b.meta, [key]: v } })} /></Field>)}</div></EditorSection>
   </>;
