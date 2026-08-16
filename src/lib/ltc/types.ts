@@ -32,17 +32,21 @@ export interface Brief {
 
 export type ImageFit = "cover" | "contain";
 export type ImageShape = "portrait" | "landscape" | "square";
+export type ImageAlign = "left" | "center" | "right";
+export type TextColor = "default" | "accent" | "muted";
 
 export interface DocImage {
   dataUrl: string;
   fit: ImageFit;
   shape: ImageShape;
+  align?: ImageAlign | undefined;
   caption?: string | undefined;
 }
 
 interface BlockBase {
   id: string;
   label: string;
+  color?: TextColor | undefined;
 }
 
 export interface TextBlock extends BlockBase {
@@ -98,11 +102,16 @@ export interface Newsletter {
   date: string;
   title: string;
   introduction: string;
+  tocColor?: TextColor | undefined;
   hero?: DocImage | undefined;
   blocks: StoryBlock[];
   closingTitle: string;
   closingMessage: string;
   callToAction: string;
+  profileTitle?: string | undefined;
+  profileText?: string | undefined;
+  donateLabel?: string | undefined;
+  donateUrl?: string | undefined;
   website: string;
   socials: string;
   createdAt: string;

@@ -202,7 +202,7 @@
   font-family: var(--font-sans);
   font-size: 12.5px;
   line-height: 1.72;
-  color: color-mix(in oklab, var(--ltc-text) 88%, transparent);
+  color: color-mix(in oklab, currentColor 88%, transparent);
 }
 
 @utility ltc-caption {

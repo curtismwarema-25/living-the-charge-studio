@@ -1,10 +1,14 @@
-import type { DocImage, Newsletter, StoryBlock } from "@/lib/ltc/types";
+import type { DocImage, Newsletter, StoryBlock, TextColor } from "@/lib/ltc/types";
 import { A4Page, PageFooter } from "./Workspace";
 
 const CONTENT_HEIGHT = 900; // usable px per continuation page
 
 function shapeRatio(shape: DocImage["shape"]) {
   return shape === "portrait" ? "3 / 4" : shape === "square" ? "1 / 1" : "16 / 10";
+}
+
+function textColor(color?: TextColor) {
+  return color === "accent" ? "var(--ltc-accent)" : color === "muted" ? "var(--ltc-muted)" : "var(--ltc-text)";
 }
 
 function estimateHeight(b: StoryBlock): number {
@@ -23,17 +27,21 @@ function estimateHeight(b: StoryBlock): number {
 }
 
 function Figure({ image, ratio }: { image: DocImage; ratio?: string }) {
+  const frameRatio = ratio ?? shapeRatio(image.shape);
   return (
     <figure className="m-0">
       <div
         className="w-full overflow-hidden bg-ltc-workspace"
-        style={{ aspectRatio: ratio ?? shapeRatio(image.shape) }}
+        style={{ aspectRatio: frameRatio }}
       >
         <img
           src={image.dataUrl}
           alt={image.caption ?? ""}
-          className="h-full w-full"
-          style={{ objectFit: image.fit }}
+          className="block h-full w-full"
+          style={{
+            objectFit: image.fit,
+            objectPosition: image.align ?? "center",
+          }}
         />
       </div>
       {image.caption ? <figcaption className="ltc-caption mt-2">{image.caption}</figcaption> : null}
@@ -67,7 +75,7 @@ function BlockView({ block, index }: { block: StoryBlock; index: number }) {
     if (block.image) {
       const image = <Figure image={block.image} />;
       return (
-        <section>
+        <section style={{ color: textColor(block.color) }}>
           {header}
           <div className="grid grid-cols-12 items-start gap-8">
             {(block.imagePosition ?? "right") === "left" ? (
@@ -80,7 +88,7 @@ function BlockView({ block, index }: { block: StoryBlock; index: number }) {
       );
     }
     return (
-      <section>
+      <section style={{ color: textColor(block.color) }}>
         {header}
         <div className="grid grid-cols-12 gap-8">
           <h2 className="ltc-display col-span-5 text-[26px]">{block.heading}</h2>
@@ -101,7 +109,7 @@ function BlockView({ block, index }: { block: StoryBlock; index: number }) {
       </div>
     );
     return (
-      <section>
+      <section style={{ color: textColor(block.color) }}>
         {header}
         <div className="grid grid-cols-12 items-start gap-8">
           {block.imagePosition === "left" ? (
@@ -122,7 +130,7 @@ function BlockView({ block, index }: { block: StoryBlock; index: number }) {
 
   if (block.kind === "fullImage") {
     return (
-      <section>
+      <section style={{ color: textColor(block.color) }}>
         {header}
         {block.image ? <Figure image={block.image} ratio="16 / 9" /> : null}
         {block.text ? <p className="ltc-body-text mt-4 max-w-[70%]">{block.text}</p> : null}
@@ -132,7 +140,7 @@ function BlockView({ block, index }: { block: StoryBlock; index: number }) {
 
   if (block.kind === "quote") {
     return (
-      <section>
+      <section style={{ color: textColor(block.color) }}>
         {header}
         <blockquote className="border-y border-ltc-line py-8">
           <p className="ltc-display text-[28px] leading-[1.18]">“{block.quote}”</p>
@@ -196,11 +204,11 @@ export function NewsletterPreview({
       <h1 className="ltc-display mt-4 text-[52px]">{n.title || "Untitled newsletter"}</h1>
       <div className="mt-7 grid grid-cols-12 gap-8">
         <p className="ltc-body-text col-span-8 text-[13.5px]">{n.introduction}</p>
-        <div className="col-span-4 border-l border-ltc-line pl-5">
+          <div className="col-span-4 border-l border-ltc-line pl-5" style={{ color: textColor(n.tocColor) }}>
           <span className="ltc-meta">In this issue</span>
           <ul className="mt-3 space-y-1.5">
             {n.blocks.slice(0, 6).map((b, i) => (
-              <li key={b.id} className="ltc-caption">
+              <li key={b.id} className="ltc-caption" style={{ color: textColor(n.tocColor ?? "accent") }}>
                 {String(i + 1).padStart(2, "0")} — {b.label}
               </li>
             ))}
@@ -247,6 +255,20 @@ export function NewsletterPreview({
         {n.callToAction ? (
           <p className="ltc-body-text mt-7 max-w-[70%] text-[14px]">{n.callToAction}</p>
         ) : null}
+        <div className="mt-8 border border-ltc-accent bg-ltc-accent-soft/40 px-5 py-4 sm:px-6 sm:py-5">
+          <span className="ltc-eyebrow text-ltc-accent">{n.profileTitle || "WHO WE ARE"}</span>
+          <p className="ltc-body-text mt-2 max-w-[78%] text-[13px]">
+            {n.profileText || "Living the Charge is a community building practical pathways for people and organisations to create meaningful, lasting change."}
+          </p>
+          <a
+            href={n.donateUrl || "https://livingthecharge.org/fundraising-campaign/"}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center bg-ltc-accent px-4 py-2 text-[12px] font-medium uppercase tracking-[0.12em] text-white transition-opacity hover:opacity-85"
+          >
+            {n.donateLabel || "Support the work"} <span className="ml-3" aria-hidden="true">→</span>
+          </a>
+        </div>
         <hr className="ltc-rule my-9" />
         <div className="grid grid-cols-3">
           <div>

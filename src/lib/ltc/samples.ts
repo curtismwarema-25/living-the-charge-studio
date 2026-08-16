@@ -120,6 +120,11 @@ export function sampleNewsletter(): Newsletter {
     closingMessage:
       "Every cohort is made possible by people who give an hour a week, a skill, or a small monthly contribution. If any of this resonates, there is a place for you in the next chapter.",
     callToAction: "Write to us at hello@livingthecharge.org to volunteer, mentor or partner.",
+    profileTitle: "WHO WE ARE",
+    profileText:
+      "Living the Charge is a community building practical pathways for people and organisations to create meaningful, lasting change.",
+    donateLabel: "Support the work",
+    donateUrl: "https://livingthecharge.org/fundraising-campaign/",
     website: "livingthecharge.org",
     socials: "@livingthecharge",
     createdAt: now(),

@@ -22,8 +22,20 @@ export async function exportPagesToPdf(pages: HTMLElement[], filename: string) {
 
   for (let i = 0; i < pages.length; i++) {
     const el = pages[i]!;
+    await Promise.all(
+      Array.from(el.querySelectorAll<HTMLImageElement>("img")).map(async (image) => {
+        if (image.complete) return;
+        try {
+          await image.decode();
+        } catch {
+          // html2canvas can still render a failed/unsupported image normally.
+        }
+      }),
+    );
     const canvas = await html2canvas(el, {
       scale: 2,
+      width: el.scrollWidth,
+      height: el.scrollHeight,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
@@ -31,6 +43,22 @@ export async function exportPagesToPdf(pages: HTMLElement[], filename: string) {
     const img = canvas.toDataURL("image/jpeg", 0.94);
     if (i > 0) pdf.addPage();
     pdf.addImage(img, "JPEG", 0, 0, pageW, pageH, undefined, "FAST");
+
+    // html2canvas renders links into the page image, but images cannot be
+    // clicked. Re-add each anchor as a native PDF link annotation.
+    const pageRect = el.getBoundingClientRect();
+    if (pageRect.width && pageRect.height) {
+      for (const anchor of Array.from(el.querySelectorAll<HTMLAnchorElement>("a[href]"))) {
+        const rect = anchor.getBoundingClientRect();
+        const x = ((rect.left - pageRect.left) / pageRect.width) * pageW;
+        const y = ((rect.top - pageRect.top) / pageRect.height) * pageH;
+        const width = (rect.width / pageRect.width) * pageW;
+        const height = (rect.height / pageRect.height) * pageH;
+        if (width > 0 && height > 0) {
+          pdf.link(x, y, width, height, { url: anchor.href });
+        }
+      }
+    }
   }
 
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}.pdf`);

@@ -10,6 +10,10 @@ export function StoryBlockEditor({
   onMove,
   onRemove,
   onAddAfter,
+  onDragStart,
+  onDrop,
+  selected,
+  onSelect,
 }: {
   block: StoryBlock;
   index: number;
@@ -18,6 +22,10 @@ export function StoryBlockEditor({
   onMove: (dir: -1 | 1) => void;
   onRemove: () => void;
   onAddAfter: (kind: StoryBlockKind) => void;
+  onDragStart?: () => void;
+  onDrop?: () => void;
+  selected?: boolean;
+  onSelect?: () => void;
 }) {
   const kindLabel = {
     text: "Text story",
@@ -28,12 +36,29 @@ export function StoryBlockEditor({
   }[block.kind];
 
   return (
-    <div className="border border-ltc-line p-5">
+    <div
+      className={`border p-5 ${selected ? "border-ltc-accent" : "border-ltc-line"}`}
+      draggable
+      onClick={onSelect}
+      onDragStart={onDragStart}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={onDrop}
+    >
       <div className="mb-4 flex items-center gap-3">
         <span className="ltc-display text-[16px] text-ltc-accent">
           {String(index + 1).padStart(2, "0")}
         </span>
         <span className="ltc-meta">{kindLabel}</span>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect?.();
+          }}
+          className={`border px-2 py-1 text-[11px] ${selected ? "border-ltc-accent bg-ltc-accent-soft text-ltc-accent" : "border-ltc-line text-ltc-muted hover:border-ltc-text"}`}
+        >
+          {selected ? "Selected" : "Select"}
+        </button>
         <div className="ml-auto flex items-center gap-1">
           <IconBtn label="Move up" disabled={index === 0} onClick={() => onMove(-1)}>
             ↑
@@ -55,6 +80,18 @@ export function StoryBlockEditor({
             placeholder="THE STORY"
           />
         </Field>
+        <label className="block">
+          <span className="field-label">Text color</span>
+          <select
+            value={block.color ?? "default"}
+            onChange={(event) => onChange({ ...block, color: event.target.value as typeof block.color })}
+            className="field-input py-1.5 text-[12px]"
+          >
+            <option value="default">Default</option>
+            <option value="accent">Cobalt accent</option>
+            <option value="muted">Muted</option>
+          </select>
+        </label>
 
         {block.kind === "text" ? (
           <>

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { DocImage, ImageFit, ImageShape } from "@/lib/ltc/types";
+import type { DocImage, ImageAlign, ImageFit, ImageShape } from "@/lib/ltc/types";
 import { readAndOptimizeImage } from "@/lib/ltc/pdf";
 
 const ACCEPT = "image/jpeg,image/jpg,image/png,image/webp";
@@ -27,8 +27,9 @@ export function ImageUploader({
     const dataUrl = await readAndOptimizeImage(file);
     onChange({
       dataUrl,
-      fit: image?.fit ?? "cover",
+      fit: image?.fit ?? "contain",
       shape: image?.shape ?? "landscape",
+      align: image?.align ?? "center",
       caption: image?.caption ?? "",
     });
   }
@@ -90,6 +91,12 @@ export function ImageUploader({
             value={image.fit}
             options={["cover", "contain"] as ImageFit[]}
             onChange={(v) => onChange({ ...image, fit: v })}
+          />
+          <Choice
+            label="Align"
+            value={image.align ?? "center"}
+            options={["left", "center", "right"] as ImageAlign[]}
+            onChange={(v) => onChange({ ...image, align: v })}
           />
           {showShape ? (
             <Choice
