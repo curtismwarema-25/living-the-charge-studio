@@ -54,14 +54,14 @@ export function Studio({ kind }: { kind: Kind }) {
   }
 
   return <div className="min-h-screen bg-ltc-workspace">
-    <div className="mx-auto max-w-[1600px] px-5 py-8 lg:px-10">
+    <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-5 sm:py-8 lg:px-10">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div><Link to="/" className="ltc-meta hover:text-ltc-text">← Documents</Link><h1 className="ltc-display mt-3 text-[34px]">{isBrief ? "One-page brief" : "Newsletter"}</h1><p className="mt-2 text-sm text-ltc-muted">Write, arrange, preview and export.</p></div>
-        <div className="flex flex-wrap gap-2"><StudioButton variant="ghost" onClick={clear}>Clear draft</StudioButton><StudioButton onClick={save}>{saved ? "Saved" : "Save draft"}</StudioButton><StudioButton variant="solid" onClick={() => void download()} disabled={exporting || warnings.length > 0}>{exporting ? "Preparing PDF…" : "Download PDF"}</StudioButton></div>
+        <div><Link to="/" className="ltc-meta hover:text-ltc-text">← Documents</Link><h1 className="ltc-display mt-3 text-[30px] sm:text-[34px]">{isBrief ? "One-page brief" : "Newsletter"}</h1><p className="mt-2 text-sm text-ltc-muted">Write, arrange, preview and export.</p></div>
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto"><StudioButton variant="ghost" onClick={clear}>Clear draft</StudioButton><StudioButton onClick={save}>{saved ? "Saved" : "Save draft"}</StudioButton><span className="col-span-2 sm:col-span-1"><StudioButton variant="solid" onClick={() => void download()} disabled={exporting || warnings.length > 0}>{exporting ? "Preparing PDF…" : "Download PDF"}</StudioButton></span></div>
       </div>
       {warnings.length > 0 && <div className="mb-6 border-l-2 border-ltc-accent bg-ltc-accent-soft px-4 py-3 text-sm text-ltc-text">{warnings.map((w) => <p key={w}>{w}</p>)}</div>}
-      <div className="grid items-start gap-10 xl:grid-cols-[minmax(360px,520px)_1fr]">
-        <div className="space-y-8 bg-ltc-background p-6 lg:p-8">
+      <div className="grid items-start gap-6 sm:gap-10 xl:grid-cols-[minmax(360px,520px)_1fr]">
+        <div className="space-y-8 bg-ltc-background p-4 sm:p-6 lg:p-8">
           {isBrief ? <BriefForm value={brief} onChange={updateBrief} /> : <NewsletterForm value={newsletter} onChange={updateNewsletter} />}
           <p className="ltc-caption">Drafts are stored locally in this browser. Nothing is uploaded.</p>
         </div>
@@ -117,5 +117,5 @@ function NewsletterForm({ value: n, onChange }: { value: Newsletter; onChange: (
 
 export function Drafts() {
   const navigate = useNavigate(); const brief = loadBrief(); const newsletter = loadNewsletter();
-  return <div className="mx-auto max-w-[900px] px-6 py-20"><Link to="/" className="ltc-meta">← Documents</Link><h1 className="ltc-display mt-5 text-[46px]">Drafts</h1><p className="mt-3 text-ltc-muted">Saved locally in this browser.</p><div className="mt-12 grid gap-px bg-ltc-line sm:grid-cols-2">{([brief && { label: "One-page brief", title: brief.title, to: "/brief" }, newsletter && { label: "Newsletter", title: newsletter.title, to: "/newsletter" }].filter(Boolean) as { label: string; title: string; to: "/brief" | "/newsletter" }[]).map((item) => <button key={item.to} className="bg-ltc-background p-7 text-left hover:bg-ltc-paper" onClick={() => void navigate({ to: item.to })}><span className="ltc-eyebrow">{item.label}</span><h2 className="ltc-display mt-3 text-2xl">{item.title}</h2><span className="ltc-caption mt-5 block">Open draft →</span></button>)}</div></div>;
+  return <div className="mx-auto max-w-[900px] px-4 py-12 sm:px-6 sm:py-20"><Link to="/" className="ltc-meta">← Documents</Link><h1 className="ltc-display mt-5 text-[38px] sm:text-[46px]">Drafts</h1><p className="mt-3 text-ltc-muted">Saved locally in this browser.</p><div className="mt-10 grid gap-px bg-ltc-line sm:mt-12 sm:grid-cols-2">{([brief && { label: "One-page brief", title: brief.title, to: "/brief" }, newsletter && { label: "Newsletter", title: newsletter.title, to: "/newsletter" }].filter(Boolean) as { label: string; title: string; to: "/brief" | "/newsletter" }[]).map((item) => <button key={item.to} className="bg-ltc-background p-6 text-left hover:bg-ltc-paper sm:p-7" onClick={() => void navigate({ to: item.to })}><span className="ltc-eyebrow">{item.label}</span><h2 className="ltc-display mt-3 text-2xl">{item.title}</h2><span className="ltc-caption mt-5 block">Open draft →</span></button>)}</div></div>;
 }

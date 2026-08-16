@@ -42,17 +42,17 @@ export function ImageUploader({
           e.preventDefault();
           void handleFiles(e.dataTransfer.files);
         }}
-        className="flex items-center gap-4 border border-dashed border-ltc-line p-3"
+        className="flex flex-wrap items-center gap-4 border border-dashed border-ltc-line p-3 sm:flex-nowrap"
       >
         {image?.dataUrl ? (
           <img
             src={image.dataUrl}
             alt="Selected"
-            className="h-20 w-28 object-cover"
+            className="h-20 w-28 shrink-0 object-cover"
             style={{ objectFit: image.fit }}
           />
         ) : (
-          <div className="flex h-20 w-28 items-center justify-center bg-ltc-workspace">
+          <div className="flex h-20 w-28 shrink-0 items-center justify-center bg-ltc-workspace">
             <span className="ltc-caption">No image</span>
           </div>
         )}

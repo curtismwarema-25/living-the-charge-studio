@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <AppShell>
-      <main className="mx-auto max-w-[1100px] px-6 py-20 lg:px-10">
+      <main className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 sm:py-20 lg:px-10">
         <span className="ltc-eyebrow">Document Studio</span>
         <h1 className="ltc-display mt-5 max-w-[16ch] text-[clamp(40px,6vw,68px)]">
           Living the Charge
@@ -74,7 +74,7 @@ function Choice({
   to: string;
 }) {
   return (
-    <div className="flex flex-col bg-ltc-background p-10">
+    <div className="flex flex-col bg-ltc-background p-6 sm:p-10">
       <span className="ltc-display text-[22px] text-ltc-accent">{number}</span>
       <h2 className="ltc-display mt-5 text-[30px]">{title}</h2>
       <p className="mt-4 max-w-[38ch] text-[14px] leading-relaxed text-ltc-muted">{body}</p>
