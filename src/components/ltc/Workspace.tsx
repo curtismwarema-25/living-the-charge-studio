@@ -1,52 +1,41 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
-/** Scales the fixed 794px A4 page down to fit the preview column. */
+const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/** Scales the fixed 794px A4 pages down to fit the preview column. */
 export function PagesViewport({ children }: { children: ReactNode }) {
   const wrap = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [height, setHeight] = useState(0);
 
-  useEffect(() => {
-    const el = wrap.current;
-    if (!el) return;
-    const update = () => setScale(Math.min(1, (el.clientWidth - 8) / 794));
+  useIso(() => {
+    const wrapEl = wrap.current;
+    const innerEl = inner.current;
+    if (!wrapEl || !innerEl) return;
+    const update = () => {
+      const s = Math.min(1, (wrapEl.clientWidth - 8) / 794);
+      setScale(s);
+      setHeight(innerEl.scrollHeight * s);
+    };
     update();
     const ro = new ResizeObserver(update);
-    ro.observe(el);
+    ro.observe(wrapEl);
+    ro.observe(innerEl);
     return () => ro.disconnect();
-  }, []);
+  }, [children]);
 
   return (
-    <div ref={wrap} className="w-full">
+    <div ref={wrap} className="w-full" style={{ height }}>
       <div
-        style={{
-          transform: `scale(${scale})`,
-          transformOrigin: "top center",
-          height: 0,
-        }}
-        className="flex flex-col items-center gap-8"
+        ref={inner}
+        className="flex w-[794px] flex-col items-center gap-8"
+        style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}
       >
-        <div className="flex flex-col items-center gap-8" ref={undefined}>
-          {children}
-        </div>
+        {children}
       </div>
-      <ScaleSpacer scale={scale} />
     </div>
   );
-}
-
-/** Reserves the vertical space consumed by the scaled pages. */
-function ScaleSpacer({ scale }: { scale: number }) {
-  const [h, setH] = useState(0);
-  useEffect(() => {
-    const measure = () => {
-      const inner = document.querySelector("[data-pages-root]") as HTMLElement | null;
-      if (inner) setH(inner.scrollHeight * scale);
-    };
-    measure();
-    const t = window.setInterval(measure, 400);
-    return () => window.clearInterval(t);
-  }, [scale]);
-  return <div style={{ height: h }} />;
 }
 
 export function A4Page({
@@ -57,11 +46,7 @@ export function A4Page({
   innerRef?: (el: HTMLDivElement | null) => void;
 }) {
   return (
-    <div
-      ref={innerRef}
-      className="ltc-page shadow-[0_2px_28px_rgba(0,0,0,0.10)]"
-      style={{ fontFamily: "Inter, sans-serif" }}
-    >
+    <div ref={innerRef} className="ltc-page shadow-[0_2px_28px_rgba(0,0,0,0.10)]">
       {children}
     </div>
   );
