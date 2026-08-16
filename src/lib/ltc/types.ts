@@ -49,6 +49,8 @@ export interface TextBlock extends BlockBase {
   kind: "text";
   heading: string;
   body: string;
+  image?: DocImage | undefined;
+  imagePosition?: "left" | "right" | undefined;
   quote?: string | undefined;
   quoteAuthor?: string | undefined;
 }

@@ -80,8 +80,9 @@
   --ltc-text: oklch(0.215 0.012 62);
   --ltc-muted: oklch(0.53 0.014 70);
   --ltc-line: oklch(0.885 0.008 82);
-  --ltc-accent: oklch(0.45 0.077 158);
-  --ltc-accent-soft: oklch(0.945 0.021 150);
+  /* Cobalt blue sampled from the Living the Charge web presence. */
+  --ltc-accent: oklch(0.49 0.2 264);
+  --ltc-accent-soft: oklch(0.945 0.03 264);
   --ltc-workspace: oklch(0.925 0.005 80);
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);

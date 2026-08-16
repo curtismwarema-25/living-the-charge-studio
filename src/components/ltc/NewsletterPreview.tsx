@@ -53,21 +53,39 @@ function BlockView({ block, index }: { block: StoryBlock; index: number }) {
   );
 
   if (block.kind === "text") {
+    const text = (
+      <div>
+        <p className="ltc-body-text mt-3 whitespace-pre-line">{block.body}</p>
+        {block.quote ? (
+          <blockquote className="mt-5 border-l-2 border-ltc-accent pl-4">
+            <p className="ltc-display text-[16px] leading-snug">“{block.quote}”</p>
+            {block.quoteAuthor ? <cite className="ltc-meta mt-2 block not-italic">{block.quoteAuthor}</cite> : null}
+          </blockquote>
+        ) : null}
+      </div>
+    );
+    if (block.image) {
+      const image = <Figure image={block.image} />;
+      return (
+        <section>
+          {header}
+          <div className="grid grid-cols-12 items-start gap-8">
+            {(block.imagePosition ?? "right") === "left" ? (
+              <><div className="col-span-6">{image}</div><div className="col-span-6"><h2 className="ltc-display text-[26px]">{block.heading}</h2>{text}</div></>
+            ) : (
+              <><div className="col-span-6"><h2 className="ltc-display text-[26px]">{block.heading}</h2>{text}</div><div className="col-span-6">{image}</div></>
+            )}
+          </div>
+        </section>
+      );
+    }
     return (
       <section>
         {header}
         <div className="grid grid-cols-12 gap-8">
           <h2 className="ltc-display col-span-5 text-[26px]">{block.heading}</h2>
-          <div className="col-span-7">
-            <p className="ltc-body-text whitespace-pre-line">{block.body}</p>
-            {block.quote ? (
-              <blockquote className="mt-5 border-l-2 border-ltc-accent pl-4">
-                <p className="ltc-display text-[16px] leading-snug">“{block.quote}”</p>
-                {block.quoteAuthor ? (
-                  <cite className="ltc-meta mt-2 block not-italic">{block.quoteAuthor}</cite>
-                ) : null}
-              </blockquote>
-            ) : null}
+          <div className="col-span-7"><p className="ltc-body-text whitespace-pre-line">{block.body}</p>
+            {block.quote ? <blockquote className="mt-5 border-l-2 border-ltc-accent pl-4"><p className="ltc-display text-[16px] leading-snug">“{block.quote}”</p>{block.quoteAuthor ? <cite className="ltc-meta mt-2 block not-italic">{block.quoteAuthor}</cite> : null}</blockquote> : null}
           </div>
         </div>
       </section>

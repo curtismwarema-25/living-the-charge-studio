@@ -1,4 +1,4 @@
-import type { StoryBlock } from "@/lib/ltc/types";
+import type { StoryBlock, StoryBlockKind } from "@/lib/ltc/types";
 import { Field, TextArea, TextInput } from "./Fields";
 import { ImageUploader } from "./ImageUploader";
 
@@ -9,6 +9,7 @@ export function StoryBlockEditor({
   onChange,
   onMove,
   onRemove,
+  onAddAfter,
 }: {
   block: StoryBlock;
   index: number;
@@ -16,6 +17,7 @@ export function StoryBlockEditor({
   onChange: (b: StoryBlock) => void;
   onMove: (dir: -1 | 1) => void;
   onRemove: () => void;
+  onAddAfter: (kind: StoryBlockKind) => void;
 }) {
   const kindLabel = {
     text: "Text story",
@@ -65,6 +67,31 @@ export function StoryBlockEditor({
             <Field label="Body text">
               <TextArea value={block.body} onChange={(v) => onChange({ ...block, body: v })} />
             </Field>
+            <ImageUploader
+              image={block.image}
+              onChange={(img) => onChange({ ...block, image: img })}
+            />
+            {block.image ? (
+              <div>
+                <span className="field-label">Image position</span>
+                <div className="flex border border-ltc-line">
+                  {(["left", "right"] as const).map((position) => (
+                    <button
+                      key={position}
+                      type="button"
+                      onClick={() => onChange({ ...block, imagePosition: position })}
+                      className={`px-3 py-1.5 text-[12px] capitalize ${
+                        (block.imagePosition ?? "right") === position
+                          ? "bg-ltc-text text-ltc-paper"
+                          : "text-ltc-muted hover:text-ltc-text"
+                      }`}
+                    >
+                      {position}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Quote (optional)">
                 <TextInput
@@ -165,6 +192,30 @@ export function StoryBlockEditor({
             </Field>
           </div>
         ) : null}
+      </div>
+      <div className="mt-5 border-t border-ltc-line pt-4">
+        <label className="flex items-center gap-2">
+          <span className="ltc-caption whitespace-nowrap">Add section below</span>
+          <select
+            defaultValue=""
+            aria-label={`Add a section below ${kindLabel}`}
+            onChange={(event) => {
+              const kind = event.target.value as StoryBlockKind;
+              if (kind) {
+                onAddAfter(kind);
+                event.target.value = "";
+              }
+            }}
+            className="field-input py-1.5 text-[12px]"
+          >
+            <option value="">Choose element…</option>
+            <option value="text">Text story</option>
+            <option value="imageText">Photo + text</option>
+            <option value="fullImage">Full-width photo</option>
+            <option value="quote">Quote</option>
+            <option value="highlight">Highlight</option>
+          </select>
+        </label>
       </div>
     </div>
   );
