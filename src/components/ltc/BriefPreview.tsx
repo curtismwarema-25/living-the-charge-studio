@@ -8,6 +8,12 @@ export function BriefPreview({
   brief: Brief;
   pageRef?: (el: HTMLDivElement | null) => void;
 }) {
+  const linkFor = (label: string, value: string) => {
+    if (label === "Website") return value.startsWith("http") ? value : `https://${value}`;
+    if (label === "Contact") return `mailto:${value}`;
+    return undefined;
+  };
+
   const meta = Object.entries({
     Date: brief.meta.date,
     Time: brief.meta.time,
@@ -24,7 +30,7 @@ export function BriefPreview({
           <span className="ltc-display text-[15px]">Living the Charge</span>
           <span className="ltc-eyebrow">{brief.category || "BRIEF"}</span>
         </div>
-        <h1 className="ltc-display mt-10 text-[42px]">{brief.title || "Untitled brief"}</h1>
+        <h1 className="ltc-display mt-10 break-words text-[clamp(32px,5.3vw,42px)]">{brief.title || "Untitled brief"}</h1>
         {brief.subtitle ? (
           <p className="mt-4 max-w-[80%] text-[15px] leading-snug text-ltc-muted">
             {brief.subtitle}
@@ -41,7 +47,7 @@ export function BriefPreview({
 
       <div className="mt-10 grid grid-cols-3 gap-x-8">
         {brief.sections.map((s, i) => (
-          <article key={s.id}>
+          <article key={s.id} className="min-w-0 break-words">
             <div className="ltc-display text-[26px] text-ltc-accent">
               {String(i + 1).padStart(2, "0")}
             </div>
@@ -66,14 +72,20 @@ export function BriefPreview({
             {meta.map(([k, v]) => (
               <div key={k}>
                 <dt className="ltc-meta">{k}</dt>
-                <dd className="mt-1 text-[12px]">{v}</dd>
+                <dd className="mt-1 break-words text-[12px]">
+                  {linkFor(k, v) ? (
+                    <a href={linkFor(k, v)} className="underline underline-offset-2">
+                      {v}
+                    </a>
+                  ) : v}
+                </dd>
               </div>
             ))}
           </dl>
         </section>
       ) : null}
 
-      <PageFooter />
+      <PageFooter {...(brief.meta.website ? { right: brief.meta.website } : {})} />
     </A4Page>
   );
 }
