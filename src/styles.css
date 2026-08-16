@@ -74,6 +74,15 @@
 
 :root {
   --radius: 0.625rem;
+  /* Living the Charge document system */
+  --ltc-background: oklch(0.977 0.008 84);
+  --ltc-paper: oklch(0.991 0.004 86);
+  --ltc-text: oklch(0.215 0.012 62);
+  --ltc-muted: oklch(0.53 0.014 70);
+  --ltc-line: oklch(0.885 0.008 82);
+  --ltc-accent: oklch(0.45 0.077 158);
+  --ltc-accent-soft: oklch(0.945 0.021 150);
+  --ltc-workspace: oklch(0.925 0.005 80);
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -151,5 +160,88 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+}
+
+/* --- Living the Charge document primitives --- */
+@utility ltc-page {
+  width: 794px;
+  min-height: 1123px;
+  background: var(--ltc-paper);
+  color: var(--ltc-text);
+  padding: 64px 68px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+@utility ltc-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ltc-accent);
+}
+
+@utility ltc-meta {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ltc-muted);
+}
+
+@utility ltc-rule {
+  border: 0;
+  border-top: 1px solid var(--ltc-line);
+}
+
+@utility ltc-body-text {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  line-height: 1.72;
+  color: color-mix(in oklab, var(--ltc-text) 88%, transparent);
+}
+
+@utility ltc-caption {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--ltc-muted);
+}
+
+@utility ltc-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.03;
+  letter-spacing: -0.02em;
+}
+
+@utility field-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ltc-muted);
+  margin-bottom: 6px;
+}
+
+@utility field-input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--ltc-line);
+  padding: 9px 11px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ltc-text);
+  outline: none;
+  &:focus {
+    border-color: var(--ltc-accent);
+  }
+  &::placeholder {
+    color: color-mix(in oklab, var(--ltc-muted) 70%, transparent);
   }
 }
